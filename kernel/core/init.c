@@ -248,7 +248,7 @@ int __init kernelsu_init(void)
         // This way are only happen when tracepoint+lkm
         // so we use ifdef MODULE there to avoid manual hook compile failed
 #ifdef MODULE
-        pr_info("late load mode, skipping kprobe hooks\n");
+        pr_info("late load mode: running late-load setup and installing hooks\n");
 
         apply_kernelsu_rules();
         cache_sid();
@@ -263,6 +263,16 @@ int __init kernelsu_init(void)
         ksu_load_allow_list();
 
         ksu_hook_init();
+
+        // Parity with the normal-boot path: without this the module load filter
+        // is never armed in a late-load session, so the modules named in
+        // ksu_block_modules can still be insmod'ed. It is a no-op when that
+        // parameter is empty (the default), which is why the omission went
+        // unnoticed. Note ksu_ksud_init() is deliberately NOT called here: it
+        // hooks __NR_read/__NR_fstat to intercept init.rc, which has already
+        // been read by the time a late-load session starts, and the hook would
+        // add overhead to every read() and fstat() for no benefit.
+        ksu_module_load_filter_hook_init();
 
         ksu_throne_tracker_init();
         ksu_observer_init();

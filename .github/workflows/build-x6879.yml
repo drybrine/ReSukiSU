@@ -1,0 +1,17 @@
+name: Build X6879 LKM
+
+# Builds only the KMI this device runs (android14-6.1, arm64) instead of the
+# upstream matrix of 8 KMIs x 2 arches. Same builder image and same make
+# invocation as .github/workflows/ddk-lkm.yml, so the resulting kernelsu.ko is
+# the upstream one for this KMI - just without waiting on 15 irrelevant jobs.
+on:
+  workflow_dispatch:
+  push:
+    branches: [x6879]
+
+jobs:
+  build-lkm:
+    uses: ./.github/workflows/ddk-lkm.yml
+    with:
+      kmi: android14-6.1
+      arch: arm64
